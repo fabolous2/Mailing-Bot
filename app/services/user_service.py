@@ -7,11 +7,11 @@ class UserService:
         self.user_dal = user_dal
         self.settings_dal = settings_dal
     
-    async def save_user(self, user: User) -> None:
-        exists = await self.user_dal.exists(user_id=user.user_id)
+    async def save_user(self, **kwargs) -> None:
+        exists = await self.user_dal.exists(**kwargs)
 
         if not exists:
-            await self.user_dal.add(user)
+            await self.user_dal.add(**kwargs)
 
     async def update_user(self, user_id: int, **kwargs) -> None:
         await self.user_dal.update(user_id, **kwargs)

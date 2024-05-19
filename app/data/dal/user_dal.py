@@ -1,4 +1,3 @@
-from dataclasses import asdict
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import insert, update, select, exists, delete, Result
@@ -11,8 +10,8 @@ class UserDAL:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def add(self, user: User) -> None:
-        query = insert(UserModel).values(**asdict(user))
+    async def add(self, **kwargs) -> None:
+        query = insert(UserModel).values(**kwargs)
         await self.session.execute(query)
         await self.session.commit()
 

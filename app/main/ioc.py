@@ -4,8 +4,8 @@ from dishka import Provider, provide, Scope
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
 
 from app.main.config import settings
-from app.data.dal import UserDAL
-from app.services import UserService
+from app.data.dal import UserDAL, EmailDAL, AudioDAL, SettingsDAL, FolderDAL
+from app.services import UserService, EmailService, AudioService, SettingsService, FolderService
 
 
 class DatabaseProvider(Provider):
@@ -25,7 +25,15 @@ class DatabaseProvider(Provider):
 
 class DALProvider(Provider):
     user_dal = provide(UserDAL, scope=Scope.REQUEST, provides=UserDAL)
+    email_dal = provide(EmailDAL, scope=Scope.REQUEST, provides=EmailDAL)
+    audio_dal = provide(AudioDAL, scope=Scope.REQUEST, provides=AudioDAL)
+    settings_dal = provide(SettingsDAL, scope=Scope.REQUEST, provides=SettingsDAL)
+    folder_dal = provide(FolderDAL, scope=Scope.REQUEST, provides=FolderDAL)
 
 
 class ServiceProvider(Provider):
     user_service = provide(UserService, scope=Scope.REQUEST, provides=UserService)
+    email_service = provide(EmailService, scope=Scope.REQUEST, provides=EmailService)
+    audio_service = provide(AudioService, scope=Scope.REQUEST, provides=AudioService)
+    settings_service = provide(SettingsService, scope=Scope.REQUEST, provides=SettingsService)
+    folder_service = provide(FolderService, scope=Scope.REQUEST, provides=FolderService)
