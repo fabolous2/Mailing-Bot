@@ -19,6 +19,6 @@ class FolderService:
         email = await self.folder_dal.get_one(**kwargs)
         return email
     
-    async def delete_folder(self, emails: Sequence[str]) -> None:
-        return await self.folder_dal.delete(emails=emails)
+    async def delete_folder(self, **kwargs) -> None:
+        return await self.folder_dal.delete(**kwargs)
     

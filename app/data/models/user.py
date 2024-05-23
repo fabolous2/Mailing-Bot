@@ -16,3 +16,4 @@ class UserModel(Base):
     emails = relationship('EmailModel', back_populates='user')
     audios = relationship('AudioModel', back_populates='user')
     settings = relationship('SettingsModel', back_populates='user')
+    folders = relationship('FolderModel', back_populates='user')

@@ -1,11 +1,8 @@
-from app.schemas import User
-from app.data.dal import UserDAL, EmailSettingsDAL
-
+from app.data.dal import UserDAL
 
 class UserService:
-    def __init__(self, user_dal: UserDAL, settings_dal: EmailSettingsDAL) -> None:
+    def __init__(self, user_dal: UserDAL) -> None:
         self.user_dal = user_dal
-        self.settings_dal = settings_dal
     
     async def save_user(self, **kwargs) -> None:
         exists = await self.user_dal.exists(**kwargs)

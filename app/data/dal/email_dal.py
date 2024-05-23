@@ -1,6 +1,7 @@
+from typing import Dict, Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import insert, update, select, exists, delete, Result
+from sqlalchemy import insert, select, exists, delete, Result
 
 from app.schemas import Email
 from app.data.models import EmailModel
@@ -10,8 +11,8 @@ class EmailDAL:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def add(self, **kwargs) -> None:
-        query = insert(EmailModel).values(**kwargs)
+    async def add(self, email_list: Sequence[Dict[str, str | int]]) -> None:
+        query = insert(EmailModel).values(email_list)
         await self.session.execute(query)
         await self.session.commit()
 
@@ -26,9 +27,7 @@ class EmailDAL:
                 )
             )
         )
-
         result = await self.session.execute(query)
-
         return result.scalar_one()
 
 
@@ -50,7 +49,9 @@ class EmailDAL:
             return Email(
                 id=db_email.id,
                 user_id=db_email.user_id,
-                email=db_email.email
+                email=db_email.email,
+                sendments=db_email.sendments,
+                folder_id=db_email.folder_id,    
             )
 
     async def get_all(self, **kwargs) -> list[Email] | None:
@@ -62,7 +63,9 @@ class EmailDAL:
                 Email(
                     id=db_email.id,
                     user_id=db_email.user_id,
-                    email=db_email.email
+                    email=db_email.email,
+                    sendments=db_email.sendments,
+                    folder_id=db_email.folder_id
                 )
                 for db_email in db_emails
             ]

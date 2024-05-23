@@ -1,8 +1,8 @@
 from .register import RegisterStatesGroup
-from .email import AddingEmailStatesGroup, EmailListSG
+from .email import AddingEmailStatesGroup, FolderStatesGroup
 
 __all__ = [
     'RegisterStatesGroup',
     'AddingEmailStatesGroup',
-    'EmailListSG'
+    'FolderStatesGroup',
 ]

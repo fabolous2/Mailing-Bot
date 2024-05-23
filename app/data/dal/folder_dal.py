@@ -51,7 +51,7 @@ class FolderDAL:
             return Folder(
                 folder_id=db_folder.folder_id,
                 user_id=db_folder.user_id,
-                name=db_folder.name
+                name=db_folder.name,
             )
 
     async def get_all(self, **kwargs) -> Sequence[Folder] | None:
@@ -63,19 +63,13 @@ class FolderDAL:
                 Folder(
                     folder_id=db_folder.folder_id,
                     user_id=db_folder.user_id,
-                    name=db_folder.name
+                    name=db_folder.name,
                 )
                 for db_folder in db_folders
             ]
 
     async def delete(self, **kwargs) -> None:
-        query = delete(FolderModel).where(
-            {
-                getattr(FolderModel, key) == value
-                for key, value in kwargs.items()
-                if hasattr(FolderModel, key)
-            }
-        )
+        query = delete(FolderModel).filter_by(**kwargs)
 
         await self.session.execute(query)
         await self.session.commit()

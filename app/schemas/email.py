@@ -6,4 +6,6 @@ class Email():
     id: int
     user_id: int
     email: str
+    folder_id: int
+    sendments: int = field(default=0)
     

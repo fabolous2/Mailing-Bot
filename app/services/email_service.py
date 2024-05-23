@@ -8,8 +8,26 @@ class EmailService:
     def __init__(self, email_dal: EmailDAL) -> None:
         self.email_dal = email_dal
 
-    async def add_emails(self, emails: Sequence[str]) -> None:
-        await self.email_dal.add(emails)
+    async def formate_list(
+        self,
+        email_list: list[str],
+        user_id: int,
+        folder_id: int
+    ) -> Sequence[Dict[str, str | int]]:
+        actual_email_list = await self.get_emails(folder_id=folder_id)
+        email_list = [
+            {
+                'user_id': user_id,
+                'email': email,
+                'folder_id': folder_id
+            }
+            for email in email_list
+        ].extend(actual_email_list)
+        email_list = list(filter(lambda email: email_list.count(email['email']) > 1, email_list ))
+        return email_list
+
+    async def add_emails(self, email_list: Sequence[Dict[str, str | int]]) -> None:
+        await self.email_dal.add(email_list=email_list)
 
     async def get_emails(self, **kwargs) -> Sequence[Email] | None:
         emails = await self.email_dal.get_all(**kwargs)
@@ -19,8 +37,8 @@ class EmailService:
         email = await self.email_dal.get_one(**kwargs)
         return email
     
-    async def delete_emails(self, emails: Sequence[str]) -> None:
-        return await self.email_dal.delete(emails=emails)
+    async def delete_email(self, **kwargs) -> None:
+        await self.email_dal.delete(**kwargs)
     
     async def update_index(self, emails: Sequence[Dict]) -> None:
         for email in emails:

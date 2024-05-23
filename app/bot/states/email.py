@@ -6,7 +6,11 @@ class AddingEmailStatesGroup(StatesGroup):
     EMAIL = State()
 
 
-class EmailListSG(StatesGroup):
+class FolderStatesGroup(StatesGroup):
+    FOLDER_SELECTION = State()
     FOLDER = State()
-    EMAIL_LIST = State()
+    FOLDER_DELETION = State()
+    FOLDER_CREATION = State()
+    EMAIL_LIST = State()    
     EMAIL = State()
+    EMAIL_ADDITION = State()

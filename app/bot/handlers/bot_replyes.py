@@ -1,6 +1,10 @@
 from aiogram import Router, F
 from aiogram.types import Message
 
+from aiogram_dialog import DialogManager, ShowMode, StartMode
+
+from app.bot.states import FolderStatesGroup
+
 router = Router()
 
 
@@ -14,8 +18,13 @@ async def mailing_handler(
 @router.message(F.text == '📪 Emails')
 async def email_handler(
     message: Message,
+    dialog_manager: DialogManager,
 ) -> None:
-    pass
+    await dialog_manager.start(
+        state=FolderStatesGroup.FOLDER_SELECTION, 
+        mode=StartMode.RESET_STACK,
+        show_mode=ShowMode.EDIT
+    )
 
 
 @router.message(F.text == '🎶 Beats')

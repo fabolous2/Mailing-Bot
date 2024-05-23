@@ -12,7 +12,9 @@ class EmailModel(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('user.user_id'))
     email: Mapped[str] = mapped_column(String)
-
+    sendments: Mapped[int] = mapped_column(Integer, default=0)
+    folder_id: Mapped[int] = mapped_column(Integer, ForeignKey('folder.folder_id'))
+ 
     user = relationship('UserModel', back_populates='emails')
     folder = relationship('FolderModel', back_populates='emails')
     
