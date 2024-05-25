@@ -15,7 +15,7 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.input import TextInput
 
 
-from app.bot.states import FolderStatesGroup
+from app.bot.states import FolderStatesGroup, AddingEmailStatesGroup
 from app.bot.bot_dialogs.getters import folders_getter, emails_getter, get_one_email
 from app.bot.bot_dialogs.callbacks import (
     selected_folder,
@@ -27,7 +27,6 @@ from app.bot.bot_dialogs.callbacks import (
     selected_email_handler,
     email_deletion_handler,
     switch_to_email_list,
-    back_to_folder,
     email_addition_handler,
     on_input_emails
 )
@@ -84,6 +83,63 @@ email_main_dialog = Dialog(
         state=FolderStatesGroup.FOLDER
     ),
     Window(
+        Const('📃:', when=F['is_empty'] == 0),
+        Const('🕳️Empty (', when=F['is_empty'] == 1),
+        ScrollingGroup(
+            Select(
+                id="email_select",
+                items="emails",
+                item_id_getter=lambda item: item.email,
+                text=Format("📧 {item.email}"),
+                on_click=selected_email_handler,
+                when=F['email'] is not None
+            ),
+            id="email_group",
+            height=10,
+            width=2,
+            hide_on_single_page=True,
+            hide_pager=True,
+            when=F['is_empty'] == 0
+        ),
+        Row(
+            PrevPage(
+                scroll="email_group", text=Format("◀️"),
+            ),
+            CurrentPage(
+                scroll="email_group", text=Format("{current_page1}"),
+            ),
+            NextPage(
+                scroll="email_group", text=Format("▶️"),
+            ),
+            when=F['is_empty'] == 0
+        ),
+        Back(
+            text=Format('◀️ Back'),
+            # on_click=back_to_folder,
+        ),
+        state=FolderStatesGroup.EMAIL_LIST,
+        getter=emails_getter,
+    ),
+    Window(
+        Format('ℹ️\n• <b>Email:</b> {email.email}\n• <b>Sendments:</b> {email.sendments}'),
+        Button(
+        text=Const('🗑️ Delete'),
+        id='email_deletion',
+        on_click=email_deletion_handler,
+        ),
+        Back(Format('◀️ Back')),
+        state=FolderStatesGroup.EMAIL,
+        getter=get_one_email
+    ),
+    Window(
+        Const('Type an emails and separate them by comma or whitespace'),
+        TextInput(
+            id='email_input',
+            on_success=on_input_emails
+        ),
+        state=FolderStatesGroup.EMAIL_ADDITION,
+    ),
+    Window(
         Const('Name of your folder:'),
         TextInput(
             on_success=on_input_folder_name,
@@ -107,120 +163,23 @@ email_main_dialog = Dialog(
         ),
         state=FolderStatesGroup.FOLDER_DELETION
     ),
-    Window(
-        Const('📃:', when=F['is_empty'] == 0),
-        Const('🕳️Empty (', when=F['is_empty'] == 1),
-        ScrollingGroup(
-            Select(
-                id="email_select",
-                items="emails",
-                item_id_getter=lambda item: item.email,
-                text=Format("📧 {item.email}"),
-                on_click=selected_email_handler,
-            ),
-            id="email_group",
-            height=10,
-            width=2,
-            hide_on_single_page=True,
-            hide_pager=True,
-            when=F['is_empty'] == 0
-        ),
-        Row(
-            PrevPage(
-                scroll="email_group", text=Format("◀️"),
-            ),
-            CurrentPage(
-                scroll="email_group", text=Format("{current_page1}"),
-            ),
-            NextPage(
-                scroll="email_group", text=Format("▶️"),
-            ),
-            when=F['is_empty'] == 0
-        ),
-        Back(
-            text=Format('◀️'),
-            on_click=back_to_folder,
-        ),
-        state=FolderStatesGroup.EMAIL_LIST,
-        getter=emails_getter,
-    ),
-    Window(
-        Format(
-        '''
-            ℹ️\n
-            • <b>Email:</b> {email.email}\n
-            • <b>Sendments:</b {email.sendments}
-        '''),
-        Button(
-        text='🗑️ Delete',
-        id='email_deletion',
-        on_click=email_deletion_handler,
-        ),
-        Back(Format('◀️')),
-        state=FolderStatesGroup.EMAIL,
-        getter=get_one_email
-    ),
-    Window(
-        Const('Type an emails and separate them by comma or whitespace'),
-        TextInput(
-            id='email_input',
-            on_success=on_input_emails
-        ),
-        state=FolderStatesGroup.EMAIL_ADDITION,
-    ),
     getter=folders_getter,
 
 )
 
-
-# # Start(Format('📧 Emails'), state=FolderStatesGroup.FOLDER),
-# Start(Format('💾 Add'), state=AddingEmailStatesGroup.EMAIL_INPUT),
-
-# email_list_dialog = Dialog(
-#     Window(
-#         ScrollingGroup(
-#             Select(
-#                 id="email_select",
-#                 items="emails",
-#                 item_id_getter=lambda item: item.email,
-#                 text=Format("📧 {item.email}"),
-#                 on_click=selected_email_handler,
-#             ),
-#             id="email_group",
-#             height=10,
-#             width=2,
-#             hide_on_single_page=True,
-#             hide_pager=True
-#         ),
-#         Row(
-#             PrevPage(
-#                 scroll="email_group", text=Format("◀️"),
-#             ),
-#             CurrentPage(
-#                 scroll="email_group", text=Format("{current_page1}"),
-#             ),
-#             NextPage(
-#                 scroll="email_group", text=Format("▶️"),
-#             ),
-#         ),
-#         state=EmailListSG.EMAIL_LIST,
-#         getter=emails_getter,
-#     ),
-#     Window(
-#         Format(
-#         '''
-#             ℹ️\n
-#             • <b>Email:</b> {email.email}\n
-#             • <b>Sendments:</b {email.sendments}
-#         '''),
-#         Button(
-#         text='🗑️ Delete',
-#         id='email_deletion',
-#         on_click=email_deletion_handler,
-#         ),
-#         Back(Format('◀️')),
-#         state=EmailListSG.EMAIL,
-#         getter=get_one_email
-#     ),
-#     on_process_result=close_dialog,
-# )
+email_adding_dialog = Dialog(
+    Window(
+        Const(text='Do u want to add it to ur email list 📃?'),
+        Row(
+            Button(
+                text=Const(text='❌ NO'),
+                on_click=...
+            ),
+            Button(
+                text=Const(text='✅ Yeah'),
+                on_click=...
+            ),
+        ),
+        state=AddingEmailStatesGroup.CHECK_OUT,
+    )
+)

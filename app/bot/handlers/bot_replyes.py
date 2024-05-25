@@ -3,7 +3,7 @@ from aiogram.types import Message
 
 from aiogram_dialog import DialogManager, ShowMode, StartMode
 
-from app.bot.states import FolderStatesGroup
+from app.bot.states import FolderStatesGroup, AddingEmailStatesGroup
 
 router = Router()
 
@@ -39,3 +39,12 @@ async def settings_handler(
     message: Message,
 ) -> None:
     pass
+
+
+@router.message(F.text)
+async def echo(
+    message: Message,
+    dialog_manager: DialogManager,
+) -> None:
+    await dialog_manager.start(AddingEmailStatesGroup.CHECK_OUT)
+    dialog_manager.dialog_data['email_list'] = message.replace(',', ' ').split()

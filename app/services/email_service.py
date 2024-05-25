@@ -1,4 +1,5 @@
 from typing import Sequence, Dict 
+from dataclasses import asdict, astuple
 
 from app.data.dal import EmailDAL
 from app.schemas import Email
@@ -10,11 +11,10 @@ class EmailService:
 
     async def formate_list(
         self,
-        email_list: list[str],
+        email_list: Sequence[str],
         user_id: int,
         folder_id: int
     ) -> Sequence[Dict[str, str | int]]:
-        actual_email_list = await self.get_emails(folder_id=folder_id)
         email_list = [
             {
                 'user_id': user_id,
@@ -22,8 +22,7 @@ class EmailService:
                 'folder_id': folder_id
             }
             for email in email_list
-        ].extend(actual_email_list)
-        email_list = list(filter(lambda email: email_list.count(email['email']) > 1, email_list ))
+        ]
         return email_list
 
     async def add_emails(self, email_list: Sequence[Dict[str, str | int]]) -> None:

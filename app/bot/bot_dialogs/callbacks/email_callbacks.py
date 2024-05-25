@@ -108,7 +108,7 @@ async def email_deletion_handler(
 ) -> None:
     email = dialog_manager.dialog_data['email']
     user_id = callback_query.from_user.id
-
+    print(email)
     try:
         await email_service.delete_email(user_id=user_id, email=email)
         await callback_query.answer('🗑️ Email was successfully deleted!')
@@ -116,7 +116,7 @@ async def email_deletion_handler(
         print(_ex)
         await callback_query.answer('⚠️ Something wrong...', show_alert=True)
     finally:
-        dialog_manager.back()
+        dialog_manager.switch_to(FolderStatesGroup.EMAIL_LIST)
 
 
 async def switch_to_email_list(
@@ -154,7 +154,6 @@ async def on_input_emails(
     user_id = message.from_user.id
     email_list = value.replace(',', ' ').split()
     folder_id = dialog_manager.dialog_data['folder_id']
-    print(email_list)
 
     try:
         fomatted_list = await email_service.formate_list(

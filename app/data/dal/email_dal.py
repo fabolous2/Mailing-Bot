@@ -71,14 +71,7 @@ class EmailDAL:
             ]
 
     async def delete(self, **kwargs) -> None:
-        query = delete(EmailModel).where(
-            {
-                getattr(EmailModel, key) == value
-                for key, value in kwargs.items()
-                if hasattr(EmailModel, key)
-            }
-        )
+        query = delete(EmailModel).filter_by(**kwargs)
 
         await self.session.execute(query)
         await self.session.commit()
-
