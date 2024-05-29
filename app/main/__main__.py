@@ -11,6 +11,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from aiogram_dialog import setup_dialogs
 
+from aiogram_album.ttl_cache_middleware import TTLCacheAlbumMiddleware
+
 from app.main.config import settings
 from app.main.ioc import DatabaseProvider, DALProvider, ServiceProvider
 from app.bot import routers
@@ -31,6 +33,8 @@ async def main() -> None:
 
     dispatcher.include_routers(*routers)
     dispatcher.include_routers(*dialogs)
+
+    TTLCacheAlbumMiddleware(router=dispatcher)
 
     container = make_async_container(DatabaseProvider(), DALProvider(), ServiceProvider())
     setup_dishka(container=container, router=dispatcher, auto_inject=True)

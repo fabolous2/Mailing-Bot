@@ -1,9 +1,12 @@
-from aiogram import Router, F
+from aiogram import Bot, Router, F
 from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
 
-from aiogram_dialog import DialogManager, ShowMode, StartMode
+from aiogram_dialog import DialogManager, StartMode
 
-from app.bot.states import FolderStatesGroup, AddingEmailStatesGroup
+from aiogram_album import AlbumMessage
+
+from app.bot.states import FolderStatesGroup, SettingsStatesGroup, MailingStatesGroup
 
 router = Router()
 
@@ -11,8 +14,30 @@ router = Router()
 @router.message(F.text == '📨 Mailing')
 async def mailing_handler(
     message: Message,
+    state: FSMContext
 ) -> None:
-    pass
+    await message.answer('🎵 Отправьте аудио')
+    await state.set_state(MailingStatesGroup.AUDIOS)
+
+
+@router.message(MailingStatesGroup.AUDIOS, F.audio)
+async def single_audio_handler(
+    message: Message,
+    dialog_manager: DialogManager,
+) -> None:
+    await dialog_manager.start(state=MailingStatesGroup.FOLDER_SELECTION, mode=StartMode.RESET_STACK)
+    dialog_manager.dialog_data['attachment_audio'] = [message.audio]
+
+
+@router.message(MailingStatesGroup.AUDIOS, F.media_group_id)
+async def audios_handler(
+    messages: AlbumMessage,
+    dialog_manager: DialogManager,
+) -> None:
+    audios = [message.audio for message in messages]
+    await dialog_manager.start(state=MailingStatesGroup.FOLDER_SELECTION, mode=StartMode.RESET_STACK)
+    dialog_manager.dialog_data['attachment_audio'] = audios
+    
 
 
 @router.message(F.text == '📪 Emails')
@@ -20,31 +45,12 @@ async def email_handler(
     message: Message,
     dialog_manager: DialogManager,
 ) -> None:
-    await dialog_manager.start(
-        state=FolderStatesGroup.FOLDER_SELECTION, 
-        mode=StartMode.RESET_STACK,
-        show_mode=ShowMode.EDIT
-    )
-
-
-@router.message(F.text == '🎶 Beats')
-async def audio_handler(
-    message: Message,
-) -> None:
-    pass
+    await dialog_manager.start(state=FolderStatesGroup.FOLDER_SELECTION, mode=StartMode.RESET_STACK)
 
 
 @router.message(F.text == '⚙️ Settings')
 async def settings_handler(
     message: Message,
-) -> None:
-    pass
-
-
-@router.message(F.text)
-async def echo(
-    message: Message,
     dialog_manager: DialogManager,
 ) -> None:
-    await dialog_manager.start(AddingEmailStatesGroup.CHECK_OUT)
-    dialog_manager.dialog_data['email_list'] = message.replace(',', ' ').split()
+    await dialog_manager.start(SettingsStatesGroup.FOLDER_SELECTION, mode=StartMode.RESET_STACK)

@@ -9,8 +9,8 @@ class SettingsDAL:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
      
-    async def update(self, user_id: int, **kwargs) -> None:
-        query = update(SettingsModel).where(SettingsModel.user_id == user_id).values(**kwargs)
+    async def update(self, folder_id: int, **kwargs) -> None:
+        query = update(SettingsModel).where(SettingsModel.folder_id == folder_id).values(**kwargs)
 
         await self.session.execute(query)
         await self.session.commit()
@@ -41,11 +41,9 @@ class SettingsDAL:
         return Settings(
             id=db_settings.id,
             user_id=db_settings.user_id,
-            audio_amount=db_settings.audio_amount,
-            schedule=db_settings.schedule,
+            folder_id=db_settings.folder_id,
             subject=db_settings.subject,
             text=db_settings.text,
-            turned_on=db_settings.turned_on,
         )
 
     async def get_all(self, **kwargs) -> list[Settings]:
@@ -62,10 +60,8 @@ class SettingsDAL:
             Settings(
                 id=db_setting.id,
                 user_id=db_setting.user_id,
-                audio_amount=db_setting.audio_amount,
-                schedule=db_setting.schedule,
+                folder_id=db_setting.folder_id,
                 subject=db_setting.subject,
                 text=db_setting.text,
-                turned_on=db_setting.turned_on,
             ) for db_setting in db_settings
         ]

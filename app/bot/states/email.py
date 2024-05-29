@@ -4,6 +4,7 @@ from aiogram.fsm.state import State, StatesGroup
 class AddingEmailStatesGroup(StatesGroup):
     CHECK_OUT = State()
     FOLDER_SELECTION = State()
+    SUCCESS = State()
 
 
 class FolderStatesGroup(StatesGroup):

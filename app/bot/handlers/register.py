@@ -43,11 +43,11 @@ async def register_password_handler(
     ):
         await message.answer('Password is invalid... Try again.')
     else:
-        state_data = state.get_data()
+        state_data = await state.get_data()
         try:
             await user_service.update_user(
                 user_id=user_id,
-                email=state_data['email'],
+                gmail=state_data['email'],
                 password=password,
             )
             await message.answer('You succesfully connected your email account!')

@@ -9,12 +9,13 @@ class EmailService:
     def __init__(self, email_dal: EmailDAL) -> None:
         self.email_dal = email_dal
 
-    async def formate_list(
+    async def formate(
         self,
         email_list: Sequence[str],
         user_id: int,
         folder_id: int
     ) -> Sequence[Dict[str, str | int]]:
+        actual_list = await self.get_emails(folder_id=folder_id)
         email_list = [
             {
                 'user_id': user_id,
@@ -23,6 +24,9 @@ class EmailService:
             }
             for email in email_list
         ]
+        if actual_list:
+            actual_list = [item.email for item in actual_list]
+            email_list = list(filter(lambda email_item: email_item['email'] not in actual_list, email_list))
         return email_list
 
     async def add_emails(self, email_list: Sequence[Dict[str, str | int]]) -> None:
@@ -38,9 +42,4 @@ class EmailService:
     
     async def delete_email(self, **kwargs) -> None:
         await self.email_dal.delete(**kwargs)
-    
-    async def update_index(self, emails: Sequence[Dict]) -> None:
-        for email in emails:
-            email.email_index += 1
         
-        await self.email_dal.update(emails=emails)

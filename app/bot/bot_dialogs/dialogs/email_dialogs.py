@@ -10,11 +10,12 @@ from aiogram_dialog.widgets.kbd import (
     NextPage,
     CurrentPage,
     Back,
-    Button
+    Button,
+    Start
 )
 from aiogram_dialog.widgets.input import TextInput
 
-
+from app.bot.bot_dialogs.callbacks.email_callbacks import on_cancel_adding, on_confirm_adding, on_select_folder_for_adding
 from app.bot.states import FolderStatesGroup, AddingEmailStatesGroup
 from app.bot.bot_dialogs.getters import folders_getter, emails_getter, get_one_email
 from app.bot.bot_dialogs.callbacks import (
@@ -91,8 +92,7 @@ email_main_dialog = Dialog(
                 items="emails",
                 item_id_getter=lambda item: item.email,
                 text=Format("📧 {item.email}"),
-                on_click=selected_email_handler,
-                when=F['email'] is not None
+                on_click=selected_email_handler
             ),
             id="email_group",
             height=10,
@@ -164,7 +164,6 @@ email_main_dialog = Dialog(
         state=FolderStatesGroup.FOLDER_DELETION
     ),
     getter=folders_getter,
-
 )
 
 email_adding_dialog = Dialog(
@@ -173,13 +172,45 @@ email_adding_dialog = Dialog(
         Row(
             Button(
                 text=Const(text='❌ NO'),
-                on_click=...
+                id='cancel_button',
+                on_click=on_cancel_adding
             ),
             Button(
                 text=Const(text='✅ Yeah'),
-                on_click=...
+                id='confirm_button',
+                on_click=on_confirm_adding
             ),
         ),
         state=AddingEmailStatesGroup.CHECK_OUT,
-    )
+    ),
+    Window(
+        Const('Выберите папку, в которую хотите добавить почты:', when=F['is_empty'] == 0),
+        ScrollingGroup(
+            Select(
+                id="folder_select",
+                items="folders",
+                item_id_getter=lambda item: item.folder_id,
+                text=Format("📁 {item.name}"),
+                on_click=on_select_folder_for_adding,
+            ),
+            id="folder_group",
+            height=10,
+            width=1,
+            hide_on_single_page=True,
+            hide_pager=True,
+            when=F['is_empty'] == 0
+        ),
+        state=AddingEmailStatesGroup.FOLDER_SELECTION,
+        getter=folders_getter,
+    ),
+    Window(
+        Const('🎉 successfully added'),
+        Start(
+            text=Const('🗞️ Email List'),
+            state=FolderStatesGroup.FOLDER_SELECTION,
+            id='look_up_list'
+        ),
+        state=AddingEmailStatesGroup.SUCCESS
+    ),
+    on_process_result=close_dialog
 )

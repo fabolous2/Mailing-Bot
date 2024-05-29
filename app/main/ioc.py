@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessi
 
 from app.main.config import settings
 from app.data.dal import UserDAL, EmailDAL, AudioDAL, SettingsDAL, FolderDAL
-from app.services import UserService, EmailService, AudioService, SettingsService, FolderService
+from app.services import UserService, EmailService, AudioService, SettingsService, FolderService, MailingService
 
 
 class DatabaseProvider(Provider):
@@ -37,3 +37,4 @@ class ServiceProvider(Provider):
     audio_service = provide(AudioService, scope=Scope.REQUEST, provides=AudioService)
     settings_service = provide(SettingsService, scope=Scope.REQUEST, provides=SettingsService)
     folder_service = provide(FolderService, scope=Scope.REQUEST, provides=FolderService)
+    mailing_service = provide(MailingService, scope=Scope.REQUEST, provides=MailingService)

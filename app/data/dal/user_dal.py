@@ -73,7 +73,7 @@ class UserDAL:
             db_user = res.scalar_one_or_none()
             return User(
                 user_id=db_user.user_id,
-                email=db_user.personal_email,
+                email=db_user.gmail,
                 password=db_user.password,
             )
 
@@ -85,7 +85,7 @@ class UserDAL:
             return [
                 User(
                     user_id=db_user.user_id,
-                    email=db_user.personal_email,
+                    email=db_user.gmail,
                     password=db_user.password,
                 )
                 for db_user in db_users

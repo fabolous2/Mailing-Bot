@@ -6,11 +6,11 @@ class SettingsService:
     def __init__(self, settings_dal: SettingsDAL) -> None:
         self.settings_dal = settings_dal
 
-    async def update_settings(self, user_id: int, **kwargs) -> None:
-        await self.settings_dal.update(user_id, **kwargs)
+    async def update_settings(self, folder_id: int, **kwargs) -> None:
+        await self.settings_dal.update(folder_id, **kwargs)
 
-    async def get_settings(self, user_id: int) -> Settings:
-        settings = await self.settings_dal.get_one(user_id=user_id)
+    async def get_settings(self, **kwargs) -> Settings:
+        settings = await self.settings_dal.get_one(**kwargs)
         return settings
     
     async def add_settings(self, **kwargs) -> None:

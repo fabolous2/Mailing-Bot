@@ -13,3 +13,4 @@ class FolderModel(Base):
     
     user = relationship('UserModel', back_populates='folders')
     emails = relationship('EmailModel', back_populates='folder')
+    settings = relationship('SettingsModel', back_populates='folder')

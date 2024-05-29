@@ -8,8 +8,9 @@ from aiogram_dialog.widgets.input import ManagedTextInput
 
 from dishka import FromDishka
 
-from app.bot.states import FolderStatesGroup
+from app.bot.states import FolderStatesGroup, AddingEmailStatesGroup
 from app.services import FolderService, EmailService
+from app.services.settings import SettingsService
 from .wrappers import inject_on_click, inject_on_process_result
 
 
@@ -72,7 +73,8 @@ async def on_input_folder_name(
     dialog_manager: DialogManager,
     value: str,
     folder_service: FromDishka[FolderService],
-):
+    settings_service: FromDishka[SettingsService],
+) -> None:
     user_id = message.from_user.id
     folder_id = int(f'{user_id}{random.randint(0, 9999)}')
 
@@ -81,6 +83,10 @@ async def on_input_folder_name(
             name=value,
             user_id=user_id,
             folder_id=folder_id,
+        )
+        await settings_service.add_settings(
+            user_id=user_id,
+            folder_id=folder_id
         )
     except Exception as _ex:
         print(_ex)
@@ -116,7 +122,7 @@ async def email_deletion_handler(
         print(_ex)
         await callback_query.answer('⚠️ Something wrong...', show_alert=True)
     finally:
-        dialog_manager.switch_to(FolderStatesGroup.EMAIL_LIST)
+        await dialog_manager.switch_to(FolderStatesGroup.EMAIL_LIST)
 
 
 async def switch_to_email_list(
@@ -156,7 +162,7 @@ async def on_input_emails(
     folder_id = dialog_manager.dialog_data['folder_id']
 
     try:
-        fomatted_list = await email_service.formate_list(
+        fomatted_list = await email_service.formate(
             user_id=user_id,
             folder_id=folder_id,
             email_list=email_list
@@ -168,3 +174,49 @@ async def on_input_emails(
         await message.answer('⚠️ Something wrong...')
     finally:
         await dialog_manager.switch_to(state=FolderStatesGroup.EMAIL_LIST)
+
+
+@inject_on_process_result
+async def on_select_folder_for_adding(
+    callback_query: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    item_id: int,
+    email_service: FromDishka[EmailService],
+) -> None:
+    user_id = callback_query.from_user.id
+    email_list = dialog_manager.dialog_data['email_list']
+    folder_id = item_id
+
+    try:
+        email_list = email_list.replace(',', ' ').split()
+        print(email_list)
+        fomatted_list = await email_service.formate(
+            user_id=user_id,
+            folder_id=folder_id,
+            email_list=email_list
+        )
+        await email_service.add_emails(email_list=fomatted_list)
+    except Exception as _ex:
+        print(_ex)
+        await callback_query.answer('⚠️ Something wrong...', show_alert=True)
+    finally:
+        await dialog_manager.switch_to(AddingEmailStatesGroup.SUCCESS)
+
+
+async def on_confirm_adding(
+    callback_query: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    await dialog_manager.switch_to(AddingEmailStatesGroup.FOLDER_SELECTION)
+
+
+async def on_cancel_adding(
+    callback_query: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager, 
+) -> None:
+    await callback_query.message.delete()
+    await callback_query.answer('Canceled')
+    await dialog_manager.close_manager()
