@@ -14,6 +14,6 @@ class UserModel(Base):
     password: Mapped[Optional[str]] = mapped_column(String(16), nullable=True, unique=True)
     
     emails = relationship('EmailModel', back_populates='user')
-    audios = relationship('AudioModel', back_populates='user')
     settings = relationship('SettingsModel', back_populates='user')
     folders = relationship('FolderModel', back_populates='user')
+    mailing = relationship('MailingModel', back_populates='user')

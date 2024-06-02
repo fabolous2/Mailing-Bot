@@ -6,7 +6,7 @@ from aiogram_dialog import DialogManager, StartMode
 
 from aiogram_album import AlbumMessage
 
-from app.bot.states import FolderStatesGroup, SettingsStatesGroup, MailingStatesGroup
+from app.bot.states import FolderStatesGroup, SettingsStatesGroup, MailingStatesGroup, ScheduledMailingSG
 
 router = Router()
 
@@ -54,3 +54,12 @@ async def settings_handler(
     dialog_manager: DialogManager,
 ) -> None:
     await dialog_manager.start(SettingsStatesGroup.FOLDER_SELECTION, mode=StartMode.RESET_STACK)
+
+
+@router.message(F.text == '⌛ Scheduled')
+async def scheduled_handler(
+    message: Message,
+    dialog_manager: DialogManager,
+) -> None:
+    await dialog_manager.start(ScheduledMailingSG.MAILING_SELECTION, mode=StartMode.RESET_STACK)
+    

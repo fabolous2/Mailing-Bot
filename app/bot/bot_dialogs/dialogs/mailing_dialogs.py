@@ -6,11 +6,13 @@ from aiogram_dialog.widgets.text import (
     Format,
     Jinja
 )
+from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import (
     ScrollingGroup,
     Select,
     Button,
-    Row
+    Row,
+    Calendar
 )
 
 from app.bot.bot_dialogs.callbacks import mailing_callbacks
@@ -57,12 +59,50 @@ mailing_dialog = Dialog(
                 on_click=mailing_callbacks.cancel_mailing_handler
             ),
             Button(
-                text=Const('✅ Send'),
+                text=Const('✅ Send Now'),
                 id='confirm_mailing',
                 on_click=mailing_callbacks.mailing_handler
             ),
         ),
+        Button(
+            text=Const('⏳ Schedule'),
+            id='schedule_mailing',
+            on_click=mailing_callbacks.schedule_mailing_handler
+        ),
         state=MailingStatesGroup.MAILING,
         getter=mailing_getter.mail_getter,
+    ),
+    Window(
+        Const('Выберите дату отправки: '),
+        Calendar(
+            id='calendar',
+            on_click=mailing_callbacks.on_date_selected
+        ),
+        state=MailingStatesGroup.SCHEDULER,
+    ),
+    Window(
+        Const('Напишите время отправки (xx:xx): '),
+        TextInput(
+            id='time_input',
+            on_success=mailing_callbacks.on_input_time
+        ),
+        state=MailingStatesGroup.TIME,
+    ),
+    Window(
+        Format('Вы уверены что хотите запустить рассылку {date} в {time}?'),
+        Row(
+            Button(
+                text=Const('❌ Cancel'),
+                id='cancel_sceduling',
+                on_click=mailing_callbacks.cancel_scheduling
+            ),
+            Button(
+                text=Const('✅ Yes'),
+                id='confirm_scheduling',
+                on_click=mailing_callbacks.confirm_scheduling
+            ),
+        ),
+        state=MailingStatesGroup.SCHEDULE_MAILING,
+        getter=mailing_getter.scheduled_time_getter,
     )
 )
