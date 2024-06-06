@@ -6,7 +6,7 @@ dialogs = [
     email_dialogs.email_adding_dialog,
     settings.settings_main_dialog,
     mailing_dialogs.mailing_dialog,
-    # scheduled_mailings_dialogs.scheduled_mailings_dialog,
+    scheduled_mailings_dialogs.scheduled_mailings_dialog,
 ]
 
 

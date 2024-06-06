@@ -10,6 +10,8 @@ from aiogram import Bot
 from aiogram.types import Audio
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.redis import RedisJobStore
+
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -28,6 +30,15 @@ class MailingService:
         start_tls=True,
         validate_certs=False,
     )
+    _jobstores = {
+        'default': RedisJobStore(
+            jobs_key='dispatched_trips_jobs',
+            run_times_key='dispatched_trips_running',
+            host='localhost',
+            db=2,
+            port=6379
+        )
+    }
 
     def __init__(
         self,
@@ -41,7 +52,7 @@ class MailingService:
         self.user_service = user_service
 
         self._email_message = MIMEMultipart()
-        self._scheduler = AsyncIOScheduler()
+        self._scheduler = AsyncIOScheduler(timezone="Europe/Moscow", jobstores=self._jobstores)
         self._mailing_dal = mailing_dal
         self._user: User = None
         self._settings: Settings = None
@@ -98,9 +109,9 @@ class MailingService:
         job_id: str
     ) -> None:
         for audio in audio_list:
-            audio_file_info = await bot.get_file(audio.file_id)
+            audio_file_info = await bot.get_file(audio['file_id'])
             audio_data = await bot.download_file(audio_file_info.file_path)
-            await self.attach_audio(audio_data=audio_data, filename=audio.file_name)
+            await self.attach_audio(audio_data=audio_data, filename=audio['file_name'])
             
         await self.send_email(user_id=user_id, folder_id=folder_id)
         await self._mailing_dal.update(job_id=int(job_id), is_active=False)

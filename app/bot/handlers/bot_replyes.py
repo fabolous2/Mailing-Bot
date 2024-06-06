@@ -1,4 +1,4 @@
-from aiogram import Bot, Router, F
+from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
@@ -26,7 +26,10 @@ async def single_audio_handler(
     dialog_manager: DialogManager,
 ) -> None:
     await dialog_manager.start(state=MailingStatesGroup.FOLDER_SELECTION, mode=StartMode.RESET_STACK)
-    dialog_manager.dialog_data['attachment_audio'] = [message.audio]
+    dialog_manager.dialog_data['attachment_audio'] = [{
+        'file_id': message.audio.file_id,
+        'file_name': message.audio.file_name
+    }]
 
 
 @router.message(MailingStatesGroup.AUDIOS, F.media_group_id)
@@ -34,11 +37,13 @@ async def audios_handler(
     messages: AlbumMessage,
     dialog_manager: DialogManager,
 ) -> None:
-    audios = [message.audio for message in messages]
+    audios = [{
+        'file_id': message.audio.file_id,
+        'file_name': message.audio.file_name
+    } for message in messages]
     await dialog_manager.start(state=MailingStatesGroup.FOLDER_SELECTION, mode=StartMode.RESET_STACK)
     dialog_manager.dialog_data['attachment_audio'] = audios
     
-
 
 @router.message(F.text == '📪 Emails')
 async def email_handler(

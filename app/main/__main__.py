@@ -17,6 +17,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler_di import ContextSchedulerDecorator
 from apscheduler.jobstores.redis import RedisJobStore
 
+from redis.asyncio.client import Redis
+
 from app.main.config import settings
 from app.main.ioc import DatabaseProvider, DALProvider, ServiceProvider
 from app.bot import routers
@@ -28,11 +30,13 @@ logger = logging.getLogger(__name__)
 
 
 async def main() -> None:
+    global scheduler
+
     logging.basicConfig(
         level=logging.INFO,
         format=u'%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s',
     )
-    storage = RedisStorage.from_url('redis://localhost:6379/0', key_builder=DefaultKeyBuilder(with_destiny=True))
+    storage = RedisStorage(Redis(db=2), key_builder=DefaultKeyBuilder(with_destiny=True))
     jobstores = {
         'default': RedisJobStore(
             jobs_key='dispatched_trips_jobs',

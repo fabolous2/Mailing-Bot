@@ -50,10 +50,11 @@ async def mailing_handler(
     audio_list = dialog_manager.dialog_data['attachment_audio']
     folder_id = dialog_manager.dialog_data['folder_id']
     bot = callback_query.message.bot
+
     for audio in audio_list:
-        audio_file_info = await bot.get_file(audio.file_id)
+        audio_file_info = await bot.get_file(audio['file_id'])
         audio_data = await bot.download_file(audio_file_info.file_path)
-        await mailing_service.attach_audio(audio_data=audio_data, filename=audio.file_name)
+        await mailing_service.attach_audio(audio_data=audio_data, filename=audio['file_name'])
         
     await mailing_service.send_email(user_id=callback_query.from_user.id, folder_id=folder_id)
 
@@ -72,19 +73,22 @@ async def on_date_selected(
     manager: DialogManager,
     selected_date: datetime.date
 ) -> None:
-    manager.dialog_data['date'] = selected_date
+    print('date handler works')
+    manager.dialog_data['date'] = str(selected_date)
+    print('date works 2')
     await manager.switch_to(MailingStatesGroup.TIME)
 
 
-@inject_on_process_result
 async def on_input_time(
     message: Message,
     widget: ManagedTextInput[str],
     dialog_manager: DialogManager,
     value: str,
 ) -> None:
+    print('time handler works')
     time = datetime.time(hour=int(value[:2]), minute=int(value[3:]))
-    dialog_manager.dialog_data['time'] = time
+    dialog_manager.dialog_data['time'] = str(time)
+    print('time works 2')
     await dialog_manager.switch_to(MailingStatesGroup.SCHEDULE_MAILING)
 
 
@@ -109,7 +113,11 @@ async def confirm_scheduling(
     audio_list = dialog_manager.dialog_data['attachment_audio']
     folder_id = dialog_manager.dialog_data['folder_id']
     date = dialog_manager.dialog_data['date']
+    date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
     time_on = dialog_manager.dialog_data['time']
+    print(time_on)
+    time_on = datetime.time(hour=int(time_on[:2]), minute=int(time_on[3:5]))
+
     combined_datetime = datetime.datetime.combine(date, time_on)
     job_id = str(int(time.time()) + random.randint(0, 99999))
 
