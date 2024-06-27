@@ -4,9 +4,12 @@ from aiogram.fsm.context import FSMContext
 
 from aiogram_dialog import DialogManager, StartMode
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from aiogram_album import AlbumMessage
 
 from app.bot.states import FolderStatesGroup, SettingsStatesGroup, MailingStatesGroup, ScheduledMailingSG
+
 
 router = Router()
 
@@ -24,6 +27,7 @@ async def mailing_handler(
 async def single_audio_handler(
     message: Message,
     dialog_manager: DialogManager,
+    apscheduler: AsyncIOScheduler,
 ) -> None:
     await dialog_manager.start(state=MailingStatesGroup.FOLDER_SELECTION, mode=StartMode.RESET_STACK)
     dialog_manager.dialog_data['attachment_audio'] = [{
@@ -36,6 +40,7 @@ async def single_audio_handler(
 async def audios_handler(
     messages: AlbumMessage,
     dialog_manager: DialogManager,
+    apscheduler: AsyncIOScheduler,
 ) -> None:
     audios = [{
         'file_id': message.audio.file_id,
@@ -43,8 +48,10 @@ async def audios_handler(
     } for message in messages]
     await dialog_manager.start(state=MailingStatesGroup.FOLDER_SELECTION, mode=StartMode.RESET_STACK)
     dialog_manager.dialog_data['attachment_audio'] = audios
-    
+    print(dialog_manager.middleware_data)
+    # dialog_manager.dialog_data['scheduler'] = [apscheduler]
 
+    
 @router.message(F.text == '📪 Emails')
 async def email_handler(
     message: Message,

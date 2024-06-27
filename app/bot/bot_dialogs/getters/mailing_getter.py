@@ -1,3 +1,4 @@
+import datetime
 from typing import Dict, Sequence
 
 from aiogram_dialog import DialogManager
@@ -64,6 +65,7 @@ async def scheduled_mailings_getter(
 ) -> Dict[str, Sequence[Mailing]]:
     user = kwargs['event_from_user']
     mailings = await scheduled_mailing_service.get_mailings(user_id=user.id, is_active=True)
+    mailings = list(filter(lambda m: m.scheduled_time > datetime.datetime.now(), mailings))
 
     return {
         'mailings': mailings,

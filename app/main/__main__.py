@@ -12,6 +12,7 @@ from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 
 from aiogram_album.ttl_cache_middleware import TTLCacheAlbumMiddleware
+from aiogram.client.session.aiohttp import AiohttpSession
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler_di import ContextSchedulerDecorator
@@ -30,8 +31,6 @@ logger = logging.getLogger(__name__)
 
 
 async def main() -> None:
-    global scheduler
-
     logging.basicConfig(
         level=logging.INFO,
         format=u'%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s',
@@ -63,9 +62,11 @@ async def main() -> None:
     setup_dialogs(dispatcher)
 
     try:
+        scheduler.start()
         await bot.delete_webhook(drop_pending_updates=True)
         await dispatcher.start_polling(bot, skip_updates=True)
     finally:
+        scheduler.shutdown()
         await dispatcher.storage.close()
         await container.close()
         await bot.session.close()

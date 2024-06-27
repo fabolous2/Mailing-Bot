@@ -1,17 +1,10 @@
-import random
-import time
+from tkinter import N, NO
 from typing import Dict, Tuple, Sequence, Optional
 from io import BytesIO
-import datetime
 
 from aiosmtplib import SMTP, SMTPResponse
 
-from aiogram import Bot
-from aiogram.types import Audio
-
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.jobstores.redis import RedisJobStore
-
+from apscheduler.schedulers.base import BaseScheduler
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -30,15 +23,6 @@ class MailingService:
         start_tls=True,
         validate_certs=False,
     )
-    _jobstores = {
-        'default': RedisJobStore(
-            jobs_key='dispatched_trips_jobs',
-            run_times_key='dispatched_trips_running',
-            host='localhost',
-            db=2,
-            port=6379
-        )
-    }
 
     def __init__(
         self,
@@ -52,7 +36,6 @@ class MailingService:
         self.user_service = user_service
 
         self._email_message = MIMEMultipart()
-        self._scheduler = AsyncIOScheduler(timezone="Europe/Moscow", jobstores=self._jobstores)
         self._mailing_dal = mailing_dal
         self._user: User = None
         self._settings: Settings = None
@@ -104,41 +87,14 @@ class MailingService:
         self,
         user_id: int,
         folder_id: int,
-        audio_list: Sequence[Audio],
-        bot: Bot,
+        audio_datas: Sequence[BytesIO],
         job_id: str
     ) -> None:
-        for audio in audio_list:
-            audio_file_info = await bot.get_file(audio['file_id'])
-            audio_data = await bot.download_file(audio_file_info.file_path)
-            await self.attach_audio(audio_data=audio_data, filename=audio['file_name'])
-            
+        for data in audio_datas:
+            await self.attach_audio(audio_data=data['data'], filename=data['file_name'])
+
         await self.send_email(user_id=user_id, folder_id=folder_id)
         await self._mailing_dal.update(job_id=int(job_id), is_active=False)
-
-    async def schedule(
-        self,
-        user_id: int,
-        folder_id: int,
-        audio_list: Sequence[Audio],
-        bot: Bot,
-        run_date: datetime.datetime,
-        job_id: int
-    ) -> None:
-        self._scheduler.add_job(
-            func=self.auto_mailing,
-            trigger='date',
-            kwargs={
-                'user_id': user_id,
-                'folder_id': folder_id,
-                'audio_list': audio_list,
-                'bot': bot,
-                'job_id': job_id
-            },
-            run_date=run_date,
-            id=job_id
-        )
-        self._scheduler.start()
 
     async def cancel_mailing(
         self,
@@ -146,3 +102,43 @@ class MailingService:
     ) -> None:
         self._scheduler.remove_job(job_id=job_id)
         await self._mailing_dal.update(job_id=job_id, is_active=False)
+
+
+async def auto_mailing_func(
+    audio_datas: Sequence[BytesIO],
+    user: User,
+    recipients: Sequence[str],
+    settings: Settings,
+    # scheduled_mailing_service,
+    job_id: int
+) -> None:
+    email_message = MIMEMultipart()
+    client: SMTP = SMTP(
+        hostname='smtp.gmail.com',
+        port=587,
+        start_tls=True,
+        validate_certs=False,
+    )
+
+    # AUDIOS ATTTACHING
+    for data in audio_datas:
+        file = MIMEBase(_maintype='audio', _subtype='mp3')
+        file.set_payload(payload=data['data'].read())
+        encoders.encode_base64(file)
+        file.add_header(_name='content-disposition', _value='attachment', filename=data['file_name'])
+        email_message.attach(file)
+
+    # MESSAGE ATTACHING
+    email_message['Subject'] = settings.subject
+    email_message['From'] = user.email
+    email_message.attach(MIMEText(settings.text, "plain", "utf-8"))
+
+    # EMAIL SENDING
+    await client.connect(username=user.email, password=user.password)
+    await client.sendmail(
+        user.email,
+        recipients,
+        email_message.as_string()
+    )
+    # await scheduled_mailing_service.update(job_id=job_id, is_active=False)
+    await client.quit()

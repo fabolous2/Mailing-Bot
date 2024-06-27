@@ -19,6 +19,6 @@ class ScheduledMailingService:
         mailing = await self.mailing_dal.get_one(**kwargs)
         return mailing
 
-    async def update(self, mailing_id: int, **kwargs) -> None:
-        await self.mailing_dal.update(mailing_id=mailing_id, **kwargs)
+    async def update(self, job_id: int, **kwargs) -> None:
+        await self.mailing_dal.update(job_id=job_id, **kwargs)
     

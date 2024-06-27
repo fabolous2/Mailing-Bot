@@ -6,7 +6,8 @@ from aiogram_dialog.widgets.kbd import (
     ScrollingGroup,
     Select,
     Button,
-    Start
+    Start,
+    Back
 )
 from aiogram_dialog.widgets.input import TextInput
 
@@ -66,6 +67,7 @@ settings_main_dialog = Dialog(
             id='edit_message',
             on_click=settings.switch_to_message_input,
         ),
+        Back(Const('◀️ Back')),
         getter=settings_getter.user_settings_getter,
         state=SettingsStatesGroup.MAIN_MENU
     ),
